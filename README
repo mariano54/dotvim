@@ -1,1 +1,18 @@
-Install these .vim rc files using GIT
+These are instructions on how to clone the repository and set up all the vim files on a new machine.
+
+cd ~
+git clone http://github.com/username/dotvim.git ~/.vim
+ln -s ~/.vim/vimrc ~/.vimrc
+ln -s ~/.vim/gvimrc ~/.gvimrc
+cd ~/.vim
+git submodule init
+git submodule update
+
+This is how to update a plugin bundle:
+
+cd ~/.vim/bundle/fugitive
+git pull origin master
+
+And this is how to update them all:
+
+git submodule foreach git pull origin master
