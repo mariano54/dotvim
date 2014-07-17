@@ -43,6 +43,10 @@ set statusline=%t[%{strlen(&fenc)?&fenc:'none'},%{&ff}]%h%m%r%y%=%c,%l/%L\ %P
 " Toggle paste mode on and off
 map <leader>pp :setlocal paste!<cr>
 vnoremap <C-c> "+y
+
+set backup
+set backupdir=~/.vim/backup
+set directory=~/.vim/tmp
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Helper functions
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
