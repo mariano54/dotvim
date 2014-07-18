@@ -1,0 +1,403 @@
+from flask import g, request, Response, render_template, redirect, url_for
+
+#from rampartdb import schema
+from AlmachBuildLibraryServer import app
+from AlmachBuildLibraryServer import image
+from AlmachBuildLibraryServer.config import RHEL, proj_dir, hostname, port
+#from AlmachBuildLibraryServer.database import db_session
+from AlmachBuildLibraryServer.__init__ import db_Image
+from AlmachBuildLibraryServer.__init__ import db
+from AlmachBuildLibraryServer.docker import *
+
+from subprocess import call
+import time
+import json
+import os
+import sqlite3
+import re
+import unittest
+
+
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+    return db
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
+@app.errorhandler(400)
+def bad_request(e):
+    response = Response("Bad request",
+                        content_type='text/plain')
+    return (response, e.code)
+
+@app.errorhandler(500)
+def server_error(e):
+    response = Response("Bad server",
+                        content_type='text/plain')
+    return (response, 500)
+
+@app.route('/ping')
+def ping():
+    return "healthy"
+
+@app.route('/sping')
+def sping():
+    return "healthy"
+
+# Get the ID of a certain image, given the username, name, and tag
+def get_id(user, name, version):
+    matches = db_Image.query.filter(db_Image.user==user, db_Image.name==name, db_Image.version==version).all()
+    if not matches: return None
+    return matches[0].id  
+
+# Returns all available images as Image objects
+# Queries Docker and stored data to check available images
+def get_images():
+    # print db_Image.query.all()
+    if RHEL is True:
+        # Optional fake images to test in RHEL5 (No docker)
+        image1 = db_Image(0, "Almach", "06/30/14", "10:12:51", None, "x86", "0.11.23", "sorgente", 1202, True)
+        images = [image1, db_Image(1, "Almach", "06/28/14", "10:12:51", image1, "ppc", "0.11.24", "colec", 241, True), db_Image(2, "image3", "12/9/13", "10:12:51", None, "x86", "0.10.142", "lisahuan", 197, False), db_Image(3, "a fourth one", "07/01/14", "10:12:51", None, "x86", "0.9.24", "beckerd", 344, True)]
+        return images
+
+    return db_Image.query.all()
+
+# Remove an image from the database, as well as from the
+# Docker registry
+def remove_image(ID):
+    matches = db_Image.query.filter(db_Image.id == ID).all()
+    for match in matches:
+        target = hostname + ':' + port + '/' + match.user + '/' + match.name + ':' + match.version
+        docker_rmi(target)
+        db.session.delete(match)
+        db.session.commit()
+        # Must remove from registry!
+        return True # id is unique, so theres a most 1 match    
+    return False
+
+# Remove an image from the database, as well as from the
+# Docker registry
+def remove_all_images():
+    matches = db_Image.query.all()
+    for match in matches:
+        target = hostname + ':' + port + '/' + match.user + '/' + match.name + ':' + match.version
+        docker_rmi(target)
+        db.session.delete(match)
+        db.session.commit()
+        # Must remove from registry!
+    if not matches: return False
+    return True
+
+# Renaame the specified image, by tagging it, removing the
+# previous name, and updating the registry and database
+def rename_image(ID, new_name):
+    matches = db_Image.query.filter(db_Image.id == ID).all()
+    if not matches: return False
+    docker_pull(hostname + ":" + port + "/" + repr(matches[0]))
+    # tag the old image as a new image
+    docker_tag(hostname + ":" + port + "/" + repr(matches[0]),
+               hostname + ":" + port + "/" + new_name)
+    # rmi the old image
+    docker_rmi(hostname + ":" + port + "/" + repr(matches[0]))
+    docker_push(hostname + ":" + port + "/" + new_name)
+    # remove the old image from registry (how?)
+    # Update database entry for registry
+    user = new_name.split('/')[0]
+    name, version = new_name.split('/')[1].split(':')
+    matches[0].name = name
+    matches[0].user = user
+    matches[0].version = version
+    db.session.commit()
+
+    return True
+
+# Edit the architecture or keywords of a certain image
+def edit_image(ID, arch, keywords):
+    matches = db_Image.query.filter(db_Image.id == ID).all()
+    if not matches: return False
+    match = matches[0]
+    match.arch = arch
+    match.keywords = keywords
+    db.session.commit()
+    return True
+
+# Returns whether search query will match with a given item
+# current implementation just checks whether it's contained
+def similar(item_name, search_query):
+    return search_query in item_name
+
+
+# Gets all images, and filters them out based on whether
+# A certain property is similar to the parameter
+def get_images_by_user(username):
+    all_images = get_images()
+    target_images = []
+    for image in all_images:
+        if similar(image.user, username):
+            target_images.append(image)
+    return target_images
+
+def get_image_by_id(ID):
+    all_images = get_images()
+    target_images = []
+    for image in all_images:
+        if image.id == ID:
+            return image
+    return None
+
+def get_images_by_sha(ID):
+    all_images = get_images()
+    target_images = []
+    for image in all_images:
+        if similar(image.sha, ID):
+            target_images.append(image)
+    return target_images
+
+def get_images_by_name(name):
+    all_images = get_images()
+    target_images = []
+    for image in all_images:
+        if similar(image.name, name):
+            target_images.append(image)
+    return target_images
+
+def get_images_by_date(date):
+    all_images = get_images()
+    target_images = []
+    for image in all_images:
+        if similar(image.date, date):
+            target_images.append(image)
+    return target_images
+
+def get_images_by_version(version):
+    all_images = get_images()
+    target_images = []
+    for image in all_images:
+        if similar(image.version, version):
+            target_images.append(image)
+    return target_images
+
+
+# Renders the home page
+@app.route('/')
+def index():
+    images = get_images()
+    return render_template("index.html", images=images, search=False)
+
+# Renders the help page
+@app.route('/help')
+def help():
+    return render_template("help.html")
+
+# Render's the page for a particular user
+@app.route('/user/<username>')
+def user(username):
+    images = get_images_by_user(username)
+    return render_template("user.html", username=username, search=False, 
+            images=images, num_images=len(images), total_images=len(images))
+
+# Render's the page for a particular image, with all its information
+@app.route('/image/<ID>')
+def image_page(ID):
+    found = None
+    if (len(ID) > 10):
+        image_matches = filter_images("sha:"+ID)
+        if len(image_matches) > 1:
+            return render_template("index.html", images=image_matches, search=True,
+            search_query="sha:"+ID)
+        elif len(image_matches) == 1:
+            found = image_matches[0]
+    else:
+        found = get_image_by_id(int(ID))
+    if found is None: return "Image not found"
+    return render_template("image.html", image=found, ID=found.id, url=hostname + ':'+ port)
+
+# Removes an image by its unique id in the database
+@app.route('/remove/<ID>')
+def remove(ID): 
+    removed = remove_image(int(ID))
+    if removed:
+        return "Removed image successfully. <a href='/'> Go home</a>"
+    else:
+        return "Could not remove image. <a href='/''> Go home</a>"
+
+# Renames an image by its unique id in the database
+@app.route('/removeall', methods=['DELETE'])
+def remove_all():
+    remove_all_images()
+    return index()
+
+# Renames an image by its unique id in the database
+@app.route('/rename', methods=['POST'])
+def rename():
+    renamed = rename_image(int(request.form['id']), request.form['name'])
+    if not renamed: return "Could not rename image. <a href='/''> Go home</a>"
+    return image_page(request.form['id'])
+
+# Edit the metadata from an image, currently architecture and keywords
+@app.route('/edit', methods=['POST'])
+def edit():
+    edited = edit_image(int(request.form['id']), request.form['arch'], request.form['keywords'])
+    if not edited: return "Could not edit image. <a href='/''> Go home</a>"
+    return image_page(request.form['id'])
+
+# Gets called when a user submits a new build 
+# Docker image has already been pulled to registry
+# This creates a database entry with the information
+# from the post request, and calls to the registry
+@app.route('/submit', methods=['POST'])
+def submit():
+    repo = request.form['@image'].split('/')
+    user = "None" if len(repo) == 1 else repo[0]
+    name = repo[0] if len(repo) == 1 else repo[1]
+    name, version = name.split(':')[0] if ':' in name else name, name.split(':')[1] if ':' in name else "latest"
+    arch = request.form['@arch']
+    keywords = request.form['@keywords'] if request.form['@keywords'] \
+        is not None else ""
+    date = time.strftime("%x")
+    time_secs = time.strftime("%H:%M:%S")
+    sha = request.form['@sha']
+    
+    print "Received submission: ", user, name, version, keywords
+ 
+    # Get information from the registry (parent and size)   
+    data = get_image_registry_info(sha)
+    size =  int(int(data["Size"])/1000000.0)
+    ancestry = get_image_registry_ancestry(sha)
+    parent = ancestry[1] if len(ancestry) > 1 else "None"
+
+    db_entry = db_Image(request.form['@sha'], 
+            name, 
+            version, 
+            date, 
+            time_secs, 
+            parent,
+            arch, 
+            user, 
+            str(size) + " MB", 
+            keywords
+            )
+    matches = db_Image.query.filter(db_Image.name == name, db_Image.user==user, db_Image.version==version).all()
+    for match in matches: 
+        print "Found previous entry, removing."
+        if match.keywords != "" and match.keywords is not None:
+            print "Adding tags", db_entry.keywords
+            db_entry.keywords = db_entry.keywords + "@" + match.keywords
+        db.session.delete(match)
+    all_keywords = [keyword for keyword in db_entry.keywords.split('@') if keyword != ""]
+    db_entry.keywords = "@".join(list(set(all_keywords)))
+    print "Added entry to database:", db_entry
+    db.session.add(db_entry)
+    db.session.commit()
+    return ""
+
+# Filter images based on the query. Query must have a specific format. There
+# are two cases. Case 1: there are no colons. In this case, simply check the 
+# input string to see if its a substring of any attribute of the image.
+# Case two: interpret parts of the query as colon separated attribute and value.
+# For example:   arch:x86
+#                name:root and user:beckerd
+#                user:sorgente or arch:ppc and version:latest
+# AND takes preference over OR, if there is no AND or OR, AND is assumed 
+def filter_images(full_query):
+    if full_query is None: return []
+    image_matches = []
+    all_images = get_images()
+    # This is case 2, we are interpreting attributes specifically
+    if ":" in full_query:
+        # Create a list of strings, each which contains ANDed terms
+        and_replacer = re.compile(re.escape(' and '), re.IGNORECASE)
+        or_terms = [and_replacer.sub(' ', s) for s in full_query.split(' or ')]
+
+        for or_term in or_terms:
+            re_matches = re.findall('\s*\w+:(?:(?:\"[^\"]+\")|[\w]+)(?#,*\s*,*\s*)', or_term)
+            search_terms = [match.strip() for match in re_matches]
+            current_matches = all_images[:]
+            for search_term in search_terms:
+                attr, value = search_term.split(':')[0], search_term.split(':')[1].strip('"')
+                if attr == "keyword": attr = "keywords"
+                elif attr == "time": attr = "time_secs"
+                elif attr == "architecture": attr = "arch"
+                elif attr == "tag": attr = "version"
+                for image in current_matches[:]:
+                    if value not in str(getattr(image, attr)):
+                        # If some attribute fails, this is not a match
+                        current_matches.remove(image)
+            for image in current_matches:
+                image_matches.append(image)
+                all_images.remove(image)
+    # This is case 1, we simply check the input string vs all attributes 
+    else:
+        for image in all_images[:]:
+            if full_query in image.sha or \
+               full_query in image.name or \
+               full_query in image.version or \
+               full_query in image.date or \
+               full_query in image.time_secs or \
+               full_query in image.parent or \
+               full_query in image.arch or \
+               full_query in image.user or \
+               full_query in image.size or \
+               full_query in str(image.has_parent) or \
+               full_query in image.keywords:
+                image_matches.append(image)
+                continue
+    return image_matches
+
+# Searches for all images matching the given constraint
+# GET parameter input: search query to be checked
+# GET parameter username: if "none", search all. If a user, seach user's
+# images and display the user's html page
+@app.route('/search')
+def search():
+    all_images = []
+    images = []
+    full_query = request.args.get('input')
+    image_matches = filter_images(full_query)
+
+    # If username is none, return all results. Otherwise, filter by user
+    if request.args.get('username') == "none":
+        return render_template("index.html", images=image_matches, search=True,
+            search_query=full_query)
+    else:
+        final_list = [image for image in image_matches if \
+            image.user == request.args.get('username') ]
+        total_user_images = len(db_Image.query.filter(
+            db_Image.user == request.args.get('username')).all())    
+        return render_template("user.html", username=request.args.get('username'),
+            images=final_list, search=True, num_images=len(final_list), 
+            total_images=total_user_images, search_query=full_query)
+
+# Retuns a json array with all the objects found in search
+# searches based o the 'input' variable, just like search, but instead
+# of returning html, it returns json
+@app.route('/json')
+def json_respose():
+    all_images = []
+    images = []
+
+    full_query = request.args.get('input')
+    image_matches = filter_images(full_query)
+    json_images = []
+    for obj in image_matches:
+        json_obj = {}
+        attributes = [a for a in dir(obj) if not a.startswith('_') and not a=='query' and not a=="metadata" and not callable(getattr(obj,a))]
+        for attribute in attributes:
+            json_obj[attribute] = getattr(obj, attribute)
+        json_images.append(json_obj)
+    return json.dumps(json_images   )
+
+@app.route('/test')
+def test():
+    code = call(['python', './test/tests.py'])
+    if code == 0: return "OK"
+    return "FAIL"
+
+def get_test_client():
+    return app.test_client()

@@ -1,0 +1,105 @@
+from subprocess import call
+import httplib, urllib
+from AlmachBuildLibraryServer.config import RHEL, proj_dir, hostname, port
+import json
+
+# Tag the image old as new, using docker tag
+# Uses a temp file and reads the output from there, to return
+def docker_tag(old, new):
+    tmp_storage = open(proj_dir + '/tmp_storage.txt', 'w')
+    print "called sudo docker tag " + old +" " + new
+    call(['sudo', 'docker', 'tag', old, new], stdout=tmp_storage)
+    tmp_storage.close()
+    f = open(proj_dir + '/tmp_storage.txt')
+    data = f.read()
+    f.close()
+    return data
+
+# Call docker rmi on the specified image
+# This will remove the image permenantly
+def docker_rmi(target):
+    tmp_storage = open(proj_dir + '/tmp_storage.txt', 'w')
+    call(['sudo', 'docker', 'rmi', target], stdout=tmp_storage)
+    print "called sudo docker rmi" + target
+    tmp_storage.close()
+    f = open(proj_dir + '/tmp_storage.txt')
+    data = f.read()
+    f.close()
+    return data
+
+# Call docker images and return the output
+# in the form of an array
+def docker_images():
+    tmp_storage = open(proj_dir + '/tmp_storage.txt', 'w')
+    call(['sudo', 'docker', 'images'], stdout=tmp_storage)
+    tmp_storage.close()
+    f = open(proj_dir + '/tmp_storage.txt')
+    image_clidata = [line.split() for line in f]
+    f.close()
+    image_clidata.pop(0)  # Remove first line (table header)
+    return image_clidata
+
+# Call docker inspect on the target image and return
+# the result as a JSON python object
+def docker_inspect(target):
+    tmp_storage = open(proj_dir + '/tmp_storage.txt', 'w')
+    call(['sudo', 'docker', 'inspect', target], stdout=tmp_storage)
+    tmp_storage.close()
+    f = open(proj_dir + '/tmp_storage.txt')
+    image_inspectdata = json.loads(f.read())
+    f.close()
+    return image_inspectdata
+
+# Call docker pull of the current image, from the registry
+# defined by hostname and port. Return the output
+def docker_pull(target):
+    tmp_storage = open(proj_dir + '/tmp_storage.txt', 'w')
+    call(['sudo', 'docker', 'pull', target], stdout=tmp_storage)
+    tmp_storage.close()
+    f = open(proj_dir + '/tmp_storage.txt')
+    return_data = f.read()
+    f.close()
+    return return_data
+
+# Call docker push of the current image, to the registry
+# defined by hostname and port. Return the output
+def docker_push(target):
+    tmp_storage = open(proj_dir + '/tmp_storage.txt', 'w')
+    call(['sudo', 'docker', 'push', target], stdout=tmp_storage)
+    tmp_storage.close()
+    f = open(proj_dir + '/tmp_storage.txt')
+    return_data = f.read()
+    print "pushed", return_data
+    f.close()
+    return return_data
+
+
+# Get information about the given image from the registry
+# in Json format
+def get_image_registry_info(sha):
+    params = urllib.urlencode({})
+    headers = {"Content-type": "application/x-www-form-urlencoded",
+           "Accept": "text/json"}
+    conn = httplib.HTTPConnection(hostname + ":" + port)
+    conn.request("GET", "/v1/images/" + sha +"/json?all=0",
+             params, headers)
+    response = conn.getresponse()
+    data = response.read()
+    # print response.status, response.reason, data
+    conn.close()
+    return json.loads(data)
+
+# Get the ancestry of the given image from the registry
+# in json -> an array of image sha-ids
+def get_image_registry_ancestry(sha):
+    params = urllib.urlencode({})
+    headers = {"Content-type": "application/x-www-form-urlencoded",
+           "Accept": "text/json"}
+    conn = httplib.HTTPConnection(hostname + ":" + port)
+    conn.request("GET", "/v1/images/" + sha + "/ancestry",
+             params, headers)
+    response = conn.getresponse()
+    data = response.read()
+    # print response.status, response.reason, data
+    conn.close()
+    return json.loads(data)
