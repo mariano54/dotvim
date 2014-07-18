@@ -7,9 +7,9 @@ set expandtab
 colorscheme molokai
 
 let g:rehash256 = 1
-let g:molokai_original = 1
+"let g:molokai_original = 1
 "set background=light
-set linespace=2
+set linespace=1
 """"""""""""""""""""""""""""""
 " => Visual mode related
 """"""""""""""""""""""""""""""
@@ -50,18 +50,35 @@ set backupdir=~/.vim/backup
 set directory=~/.vim/tmp
 set number
 
+"Show hidden files in NerdTree
+let NERDTreeShowHidden=1
+"
+"autopen NERDTree and focus cursor in new document
+autocmd VimEnter * NERDTree
+autocmd VimEnter * wincmd p
+
 autocmd StdinReadPre * let s:std_in=1
 autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
+
+
+set encoding=utf-8
+set t_Co=256
+
+let g:airline_powerline_fonts = 1
+let g:airline_theme = "tomorrow"
 
 " Enable the list of buffers
 let g:airline#extensions#tabline#enabled = 1
 "
 " " Show just the filename
 let g:airline#extensions#tabline#fnamemod = ':t'
-"
 " My preference with using buffers. See `:h hidden` for more details
  set hidden
+
+autocmd FileType * unlet! g:airline#extensions#whitespace#checks
+autocmd FileType markdown let g:airline#extensions#whitespace#checks = [ 'indent' ]
+
 
  " To open a new empty buffer
  " " This replaces :tabnew which I used to bind to this mapping

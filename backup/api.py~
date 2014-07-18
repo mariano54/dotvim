@@ -52,7 +52,8 @@ def sping():
 
 # Get the ID of a certain image, given the username, name, and tag
 def get_id(user, name, version):
-    matches = db_Image.query.filter(db_Image.user==user, db_Image.name==name, db_Image.version==version).all()
+    matches = db_Image.query.filter(db_Image.user==user, 
+            db_Image.name==name, db_Image.version==version).all()
     if not matches: return None
     return matches[0].id  
 
@@ -73,7 +74,8 @@ def get_images():
 def remove_image(ID):
     matches = db_Image.query.filter(db_Image.id == ID).all()
     for match in matches:
-        target = hostname + ':' + port + '/' + match.user + '/' + match.name + ':' + match.version
+        target = hostname + ':' + port + '/' + match.user + '/' + \
+            match.name + ':' + match.version
         docker_rmi(target)
         db.session.delete(match)
         db.session.commit()
@@ -86,7 +88,8 @@ def remove_image(ID):
 def remove_all_images():
     matches = db_Image.query.all()
     for match in matches:
-        target = hostname + ':' + port + '/' + match.user + '/' + match.name + ':' + match.version
+        target = hostname + ':' + port + '/' + match.user + '/' + \
+            match.name + ':' + match.version
         docker_rmi(target)
         db.session.delete(match)
         db.session.commit()
@@ -226,6 +229,8 @@ def remove(ID):
         return "Removed image successfully. <a href='/'> Go home</a>"
     else:
         return "Could not remove image. <a href='/''> Go home</a>"
+    if matsc:
+        qwqr, wqe
 
 # Renames an image by its unique id in the database
 @app.route('/removeall', methods=['DELETE'])
@@ -350,6 +355,14 @@ def filter_images(full_query):
                 continue
     return image_matches
 
+@app.route('/new')
+def new():
+    print "NEW!"
+    str = ""
+    for n in range(100):
+        str += str(n) 
+    return str
+
 # Searches for all images matching the given constraint
 # GET parameter input: search query to be checked
 # GET parameter username: if "none", search all. If a user, seach user's
@@ -387,7 +400,8 @@ def json_respose():
     json_images = []
     for obj in image_matches:
         json_obj = {}
-        attributes = [a for a in dir(obj) if not a.startswith('_') and not a=='query' and not a=="metadata" and not callable(getattr(obj,a))]
+        attributes = [a for a in dir(obj) if not a.startswith('_') and
+            not a=='query' and not a=="metadata" and not callable(getattr(obj,a))]
         for attribute in attributes:
             json_obj[attribute] = getattr(obj, attribute)
         json_images.append(json_obj)

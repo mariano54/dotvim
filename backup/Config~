@@ -1,0 +1,38 @@
+# -*-perl-*-
+
+package.AlmachAutoBuild = {
+    interfaces = (1.0);
+
+    build-system = copysrc;
+    build-environment = {
+        chroot = basic;
+        network-access = blocked;
+    };
+
+    build-tools = {
+        1.0 = {
+            CopySrcBuild = 1.0;
+        };
+    };
+
+    dependencies = {
+        1.0 = {
+            AWSS3CommandLineClient = 1.0;
+            CronAdminCommand = 1.2;
+            Git = 1.7;
+            MakePython27Default = 1.0;
+            Openssl = 1.0;
+            PyYAML3 = 3.09;
+            Python27 = 1.0;
+        };
+    };
+
+    targets = {
+        # Congratulations on your new Brazil package!  If you are unsure of
+        # how to get started, please refer to the Config file documentation:
+        # https://w.amazon.com/?BrazilBuildSystem/Reference/ConfigFile
+        #
+        # Once you are ready to start adding targets to your new package, see:
+        # https://w.amazon.com/?BrazilBuildSystem/Reference/TargetTypeDefinitions
+    };
+};
