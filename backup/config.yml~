@@ -1,0 +1,47 @@
+ommon:
+    loglevel: info
+    search_backend: "_env:SEARCH_BACKEND:"
+    sqlalchemy_index_database:
+        "_env:SQLALCHEMY_INDEX_DATABASE:sqlite:////tmp/docker-registry.db"
+
+s3:
+    loglevel: debug
+    storage: s3
+    s3_region: us-west-2
+    s3_bucket: almachbuildlibrary
+    boto_bucket: almachbuildlibrary
+    storage_path: _env:STORAGE_PATH:/registry
+    s3_encrypt: _env:AWS_ENCRYPT:true
+    s3_secure: _env:AWS_SECURE:false
+    s3_access_key: AKIAJUJGZVT2KUDREJFA
+    s3_secret_key: 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 
+    
+
+
+prod:
+    loglevel: _env:LOGLEVEL:debug
+    standalone: true
+    index_endpoint: _env:INDEX_ENDPOINT
+    disable_token_auth: _env:DISABLE_TOKEN_AUTH
+    privileged_key: _env:PRIVILEGED_KEY
+
+    loglevel: debug
+    storage: s3
+    s3_access_key: AKIAJUJGZVT2KUDREJFA
+    s3_secret_key: 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 
+    s3_bucket: almachbuildlibrary
+    s3_region: us-west-2
+    boto_bucket: almachbuildlibrary
+    storage_path: /registry
+    smtp_host: localhost
+    from_addr: docker@myself.com
+    to_addr: my@myself.com
+
+dev:
+    loglevel: debug
+    storage: local
+    storage_path: /home/myself/docker
+
+test:
+    storage: local
+    storage_path: /tmp/tmpdockertmp

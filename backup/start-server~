@@ -13,7 +13,7 @@ from AlmachBuildLibraryServer import app
 
 parser = argparse.ArgumentParser("rampart-db-webui")
 parser.add_argument('host', default='127.0.0.1')
-parser.add_argument('-p', '--port', type=int, default=5000)
+parser.add_argument('-p', '--port', type=int, default=5001)
 parser.add_argument('--use-debug-toolbar', action='store_true', default=False)
 args = parser.parse_args()
 
@@ -28,9 +28,9 @@ port=args.port
 
 newpid = os.fork()
 if newpid == 0:
-	print "PID", os.getpid()
-	call(['sudo', 'docker', 'start', 'stupefied_pasteur'])
-	os._exit(0)  
+    print "PID", os.getpid()
+    #call(['sudo', 'docker', 'start', 'sharp_bell'])
+    os._exit(0)  
 else:
     print "PID", os.getpid()
     app.run(debug=True, host=host, port=port)

@@ -1,0 +1,62 @@
+import os
+import logging
+
+# from bender.config import OpConfigDescriptor, Config, ConfigProxy
+# from pyodinhttp import odin_retrieve_pair, OdinOperationError
+# from amzenviron import environment, is_test
+
+hostname = "sorgente.aka"
+port = "5000"
+proj_dir = "/home/local/ANT/sorgente/Projects/LocalProject"
+RHEL = False
+DATABASE = '/home/local/ANT/sorgente/Projects/LocalProject/lib/AlmachBuildLibraryServer/almach.db'
+
+# docker run -e SETTINGS_FLAVOR=s3 -e AWS_BUCKET=almachbuildlibrary -e STORAGE_PATH=/ -e AWS_KEY=AKIAJUJGZVT2KUDREJFA -e AWS_SECRET=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 -e SEARCH_BACKEND=sqlalchemy --net=host registry
+
+log = logging.getLogger(__name__)
+
+# class AppConfig(Config):
+
+    # def __init__(self, options=None):
+        # options = {
+            # 'secret_key_material_set': OpConfigDescriptor('secret_key_material_set',
+                                                          # ['OCF.RampartDB', 'OdinMaterialSetName'],
+                                                          # default_value='com.amazon.cmd.rampartdb.webui.secret_key'),
+        # }
+        # super(AppConfig, self).__init__(self,
+                                        # ConfigProxy('RampartDBWebUI', appgroup='Rampart'),
+                                        # options)
+
+# app_config = AppConfig()
+
+def get_secret_key():
+    return "NO SECRET"
+    # try:
+        # return odin_credentials(app_config.secret_key_material_set)[1]
+    # except OdinOperationError, ValueError:
+        # if is_test:
+            # log.error("DANGER: RUNNING WITH NO SECRET KEY")
+            # return "NO SECRET"
+        # else:
+            # raise SystemExit(1)
+
+# def odin_credentials(material_set):
+    # principal, credential = odin_retrieve_pair(material_set)
+    # return principal.data, credential.data
+
+def rampart_db_path():
+    return ""
+    # try to find our Rampart DB; there are a few ways we can do this.
+    # rampart_db_path = os.path.join(environment.root_dir, 'Apollo/Consumables/RampartDB/etc/mortar/rampartdb.db')
+
+    # if is_test and not os.path.exists(rampart_db_path):
+        # RampartDB must be a co-build in your workspace for this to work.
+        # rampart_db_path = os.path.abspath(os.path.join(environment.root_dir, '../RampartDB/build/etc/mortar/rampartdb.db'))
+
+   #r eturn rampart_db_path
+
+
+def static_file_path():
+    # path = os.path.join(os.getcwd(), 'static_media')
+    path = '/home/local/ANT/sorgente/Projects/LocalProject/static_media'
+    return path

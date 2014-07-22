@@ -229,8 +229,6 @@ def remove(ID):
         return "Removed image successfully. <a href='/'> Go home</a>"
     else:
         return "Could not remove image. <a href='/''> Go home</a>"
-    if matsc:
-        qwqr, wqe
 
 # Renames an image by its unique id in the database
 @app.route('/removeall', methods=['DELETE'])

@@ -1,0 +1,70 @@
+{% extends "template.html" %}
+
+{% block includes %}
+    <link rel="stylesheet" href="../static_media/css/bootstrap.css">
+    <link rel="stylesheet" href="../static_media/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="../static_media/css/main.css">\
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script  src="../static_media/js/bootstrap.js"></script>
+    <script src="../static_media/js/sortable.js"></script>
+    <script src="../static_media/js/main.js"></script>
+{% endblock %}
+
+{% block header %}
+<div class="tab_content tab1" style="padding-left:20px;background-color:#EEE;padding-bottom:12px;">
+    <div id="dialerdiv1" style="float: left; width: 205px;">
+        <h2>{{ username }}</h2>
+    </div>
+    <div id="dialerdiv2" style="float: left; width:435px;padding-top:20px;">
+        <form class="form-inline" role="form" action="/search" method="GET">
+            <input type="hidden" name="username" value="{{ username }}"></input>
+            <div class="form-group">
+                <input id="search_input" style="width:350px" type="text" class="form-control" placeholder="Search {{ username }}'s images here" 
+                       autofocus value="{% if search %}{{ search_query }}{% else  %}{% endif %}" 
+                       name="input" onfocus="$('#search_input').setCursorPosition($('#search_input').val().length);">
+                </input>
+            </div>
+            <div class="form-group">
+            <input type="submit" class="btn btn-primary" value="Go"></input>
+            </div>
+        </form>
+    </div>
+    <div style="clear: both;"></div>
+    Total images: {{ total_images }}
+    {% if total_images == num_images %}
+    {% else %}
+    Found: {{ num_images }}
+    {% endif %}
+</div> 
+{% endblock %}
+
+{% block content %}
+   <div id="main" style="padding:20px;padding-top:0px;">
+        <table class="table table-condensed table-striped table-hover sortable">
+            <thead>
+            <tr>
+                <th>SHA id</th>
+                <th>Name</th>
+                <th>Version</th>
+                <th>Date</th>
+                <th>Architecture</th>
+                <th class="sorttable_numeric">Size</th>
+                <th>User</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for image in images %}
+                <tr>
+                    <td>{{ image.sha[:8] }}...</td>
+                    <td><a href="/image/{{image.id }}"> {{ image.name }}</a></td>
+                    <td>{{ image.version }}</td>
+                    <td>{{ image.date }}</td>
+                    <td>{{ image.arch }}</td>
+                    <td>{{ image.size }}</td>
+                    <td><a href="/user/{{image.user }}">{{ image.user }}</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    </div>
+{% endblock %}

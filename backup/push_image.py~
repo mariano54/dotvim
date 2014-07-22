@@ -4,7 +4,7 @@ import argparse
 import os, json
 
 host = "sorgente.aka"
-port = "5001"
+port = "5000"
 
 def docker_inspect(target):
     tmp_storage = open(os.getcwd() + '/tmp_storage.txt', 'w')
@@ -43,7 +43,8 @@ def main():
 
 	# Create an HTTP request with additional data, to send to server
 	# This can be modified, along with the cli arguments, to add more metadata
-	params = urllib.urlencode({ '@image': args.image,'@arch': args.arch, '@keywords': keywords, '@sha' : sha })
+	params = urllib.urlencode({ '@image': args.image,'@arch': args.arch, 
+             '@keywords': keywords, '@sha' : sha })
 	headers = {"Content-type": "application/x-www-form-urlencoded",
            "Accept": "text/plain"}
 	conn = httplib.HTTPConnection(host + ":5000")

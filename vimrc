@@ -25,6 +25,8 @@ map k gk
 " Map <Space> to / (search) and Ctrl-<Space> to ? (backwards search)
 map <space> /
 map <c-space> ?
+let mapleader=","
+filetype plugin on
 
 " Return to last edit position when opening files (You want this!)
 autocmd BufReadPost *
@@ -44,6 +46,7 @@ set viminfo^=%
 " Toggle paste mode on and off
 map <leader>pp :setlocal paste!<cr>
 vnoremap <C-c> "+y
+
 
 set backup
 set backupdir=~/.vim/backup
@@ -85,17 +88,17 @@ autocmd FileType markdown let g:airline#extensions#whitespace#checks = [ 'indent
  nmap <leader>T :enew<cr>
  "
  " " Move to the next buffer
- "nmap <leader>l :bnext<CR>
+ "nmap <leader>f :bnext<CR>
  "
  " " Move to the previous buffer
- "nmap <leader>h :bprevious<CR>
+ "nmap <leader>d :bprevious<CR>
  "
  " " Close the current buffer and move to the previous one
  " " This replicates the idea of closing a tab
- nmap <leader>bq :bp <BAR> bd #<CR>
+ nmap <leader>q :bp <BAR> bd #<CR>
  "
  " " Show all open buffers and their status
- nmap <leader>bl :ls<CR>
+ nmap <leader>l :ls<CR>
 
 
 " Necesary  for lots of cool vim things
@@ -133,10 +136,8 @@ nnoremap <silent> <C-Right> :bnext<CR>
 " Previous Tab
 nnoremap <silent> <C-Left> :bprevious<CR>
 
-" New Tab
-"nnoremap <silent> <C-t> :tabnew<CR>
 
-noremap <Leader>] :NERDTreeToggle<cr>
+noremap <Leader>m :NERDTreeToggle<cr>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Helper functions
