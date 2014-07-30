@@ -12,7 +12,7 @@
 	url = https://github.com/scrooloose/nerdtree.git
 [submodule "bundle/supertab"]
 	path = bundle/supertab
-	url = https://github.com/flazz/ervandew/supertab.git
+	url = https://github.com/ervandew/supertab.git
 [submodule "bundle/syntastic"]
 	path = bundle/syntastic
 	url = https://github.com/scrooloose/syntastic.git
