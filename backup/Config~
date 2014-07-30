@@ -1,38 +1,89 @@
-# -*-perl-*-
+#-*-perl-*-
+#  //brazil/src/appgroup/null/null/RampartDBWebUI/mainline ssh://git.amazon.com:2222//Config
 
-package.AlmachAutoBuild = {
+package.AlmachBuildLibraryServer = {
     interfaces = (1.0);
 
-    build-system = copysrc;
-    build-environment = {
-        chroot = basic;
-        network-access = blocked;
-    };
+    build-system = brazilpython;
 
     build-tools = {
         1.0 = {
-            CopySrcBuild = 1.0;
+            BrazilPython = 2.0;
+            Python-setuptools = 0.6c11;
+            Sphinx = 1.1.2;
+            Flake8 = 1.5;
+	    #Flask = 0.10;
+            # Python versions to build for
+            Python27 = 1.0;
         };
     };
 
     dependencies = {
         1.0 = {
-            AWSS3CommandLineClient = 1.0;
-            CronAdminCommand = 1.2;
-            Git = 1.7;
-            MakePython27Default = 1.0;
-            Openssl = 1.0;
-            PyYAML3 = 3.09;
-            Python27 = 1.0;
+            Flask               = 0.10;
+            Python-Flask-DebugToolbar = 0.8;
+	    Flask-SQLAlchemy=0.16;
+            BenderLibConfig = 1.0;
+            BenderLibApollo = 1.0;
+            NetAutoPythonCore   = 1.1;
+            OdinLocalPythonInterface = 1.1;
+         };
+    };
+
+    remove-dependencies = {
+        1.0 = {
+            Python-distribute = 0.6.30;
         };
     };
 
+    runtime-dependencies = {
+        1.0 = {
+           # AlmachBuildLibraryServer           = 1.0;
+        };
+    };
+
+    test-dependencies = {
+        1.0 = {
+            Nose = 1.1.3;
+            Python-Mock = 1.0.1;
+            Python-nose-xcover = 1.0.7;
+            Coverage = 3.5.2;
+            Python-Hamcrest = 1.6;
+        };
+    };
+
+    resolves-conflict-dependencies = {
+        1.0 = {
+            Nose = 1.1.3;
+            SQLAlchemy = 0.7.9;
+
+            # force flask to 0.10
+            Flask = 0.10;
+            Itsdangerous = 0.21;
+        };
+    };
+
+    python = {
+        default-version = "2.7";
+        setup-type = setuptools;
+        unittesttype = nose;
+        noseargs = "-v -w test --with-id --with-coverage --cover-package rampart_db_ui --cover-erase --cover-html --cover-html-dir=../build/brazil-documentation/coverage/ --xcoverage-file=../build/brazil-documentation/coverage/coverage.xml";
+        doctool = sphinx;
+    };
+
+    # Comment the following if this is not a pure Python package
+    deploy = {
+        generic = true;
+    };
+
+    build-environment = {
+        chroot = basic;
+        network-access = blocked;
+    };
+
     targets = {
-        # Congratulations on your new Brazil package!  If you are unsure of
-        # how to get started, please refer to the Config file documentation:
-        # https://w.amazon.com/?BrazilBuildSystem/Reference/ConfigFile
-        #
-        # Once you are ready to start adding targets to your new package, see:
-        # https://w.amazon.com/?BrazilBuildSystem/Reference/TargetTypeDefinitions
+        # see setup.py for the actual build logic
+        # keep this line for brazil-path to work
+        python = { type = python; };
     };
 };

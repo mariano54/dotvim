@@ -26,11 +26,18 @@ if args.use_debug_toolbar:
 host=args.host
 port=args.port
 
+print "here1"
 newpid = os.fork()
+print "here2"
 if newpid == 0:
-    print "PID", os.getpid()
-    #call(['sudo', 'docker', 'start', 'sharp_bell'])
+    print "PID", newpid, os.getpid()
+    client_enc ="4QTg4lAr7rQNI9xVGg8VP0Op1FCfWrWN4UbT0YtQMX4"
+    access = "AKIAIRDGX7VOQRBRTXSA"
+    secret = "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"
+ 
+    call(['env', 'S3_CLIENT_ENCRYPT_SECRET=' + client_enc, 'S3_ACCESS_KEY='+access, 'S3_SECRET_KEY='+secret,'gunicorn', '--access-logfile', '-', '--debug', '-k', 'gevent', '-b', '0.0.0.0:5000', '-w', '1', 'docker_registry.wsgi:application'])
+    ##call(['sudo', 'docker', 'start', 'sharp_bell'])
     os._exit(0)  
 else:
-    print "PID", os.getpid()
-    app.run(debug=True, host=host, port=port)
+    print "PID", newpid, os.getpid()
+    app.run(debug=True, host=host, port=port, use_reloader=False)

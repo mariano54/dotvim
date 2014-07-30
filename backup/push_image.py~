@@ -4,7 +4,8 @@ import argparse
 import os, json
 
 host = "sorgente.aka"
-port = "5000"
+registry_port = "5000"
+server_port = "5001"
 
 def docker_inspect(target):
     tmp_storage = open(os.getcwd() + '/tmp_storage.txt', 'w')
@@ -24,21 +25,21 @@ def main():
 	args = parser.parse_args()
 	if args.arch is None: args.arch ="x86"
 
-	if host + ":" + port not in args.image:
+	if host + ":" + registry_port not in args.image:
 		# Tag the image with the host and port
 		print "Tagging image"
-		call(['sudo', 'docker', 'tag', args.image, host + ':' + port + '/' + args.image])
+		call(['sudo', 'docker', 'tag', args.image, host + ':' + registry_port + '/' + args.image])
 
-	sha = docker_inspect(host + ':' + port + '/' + args.image)[0]["Id"]
+	sha = docker_inspect(host + ':' + registry_port + '/' + args.image)[0]["Id"]
 	keywords = "" if not args.k else "@".join(args.k)
 
 	# Push the specified image to the docker registry
 	print "Pushing image:"
-	call(['sudo', 'docker', 'push', host + ':' + port + '/' + args.image])
+	call(['sudo', 'docker', 'push', host + ':' + registry_port + '/' + args.image])
 	print "Pushed image"
 
-	if host + ":" + port not in args.image:
-		call(['sudo', 'docker', 'rmi', host + ':' + port + '/' + args.image])
+	if host + ":" + registry_port not in args.image:
+		call(['sudo', 'docker', 'rmi', host + ':' + registry_port + '/' + args.image])
 
 
 	# Create an HTTP request with additional data, to send to server
@@ -47,7 +48,7 @@ def main():
              '@keywords': keywords, '@sha' : sha })
 	headers = {"Content-type": "application/x-www-form-urlencoded",
            "Accept": "text/plain"}
-	conn = httplib.HTTPConnection(host + ":5000")
+	conn = httplib.HTTPConnection(host + ":" + server_port)
 	conn.request("POST", "/submit", params, headers)
 	response = conn.getresponse()
 	print response.status, response.reason

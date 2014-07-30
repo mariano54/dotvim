@@ -7,9 +7,9 @@ import logging
 
 hostname = "sorgente.aka"
 port = "5000"
-proj_dir = "/home/local/ANT/sorgente/Projects/LocalProject"
+proj_dir = "/home/local/ANT/sorgente/Projects/AlmachBuildLibrary"
 RHEL = False
-DATABASE = '/home/local/ANT/sorgente/Projects/LocalProject/lib/AlmachBuildLibraryServer/almach.db'
+DATABASE = '/home/local/ANT/sorgente/Projects/AlmachBuildLibrary/lib/AlmachBuildLibraryServer/almach.db'
 
 # docker run -e SETTINGS_FLAVOR=s3 -e AWS_BUCKET=almachbuildlibrary -e STORAGE_PATH=/ -e AWS_KEY=AKIAJUJGZVT2KUDREJFA -e AWS_SECRET=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 -e SEARCH_BACKEND=sqlalchemy --net=host registry
 

@@ -100,6 +100,9 @@ autocmd FileType markdown let g:airline#extensions#whitespace#checks = [ 'indent
  " " Show all open buffers and their status
  nmap <leader>l :ls<CR>
 
+" Change cursor in insert mode
+let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+let &t_EI = "\<Esc>]50;CursorShape=0\x7"
 
 " Necesary  for lots of cool vim things
 set nocompatible

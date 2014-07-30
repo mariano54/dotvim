@@ -271,6 +271,7 @@ def submit():
  
     # Get information from the registry (parent and size)   
     data = get_image_registry_info(sha)
+    print "DATA:", data
     size =  int(int(data["Size"])/1000000.0)
     ancestry = get_image_registry_ancestry(sha)
     parent = ancestry[1] if len(ancestry) > 1 else "None"
@@ -312,6 +313,20 @@ def filter_images(full_query):
     if full_query is None: return []
     image_matches = []
     all_images = get_images()
+
+    if ":" in full_query and "/" in full_query:
+        user_and_name, version = full_query.split(':')
+        user, name = user_and_name.split('/')
+        for image in all_images:
+            if image.user != user: 
+                continue
+            if image.name != name: 
+                continue
+            if image.version != version: 
+                continue
+            image_matches.append(image)
+        return image_matches
+    
     # This is case 2, we are interpreting attributes specifically
     if ":" in full_query:
         # Create a list of strings, each which contains ANDed terms
@@ -407,7 +422,7 @@ def json_respose():
 
 @app.route('/test')
 def test():
-    code = call(['python', './test/tests.py'])
+    code = call(['python','./test/tests.py'])
     if code == 0: return "OK"
     return "FAIL"
 

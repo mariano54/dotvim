@@ -1,0 +1,8 @@
+gpg --symmetric --cipher-algo AES256
+Another type of cryptographic solution provided by Gnu Privacy Guard (GPG) is symmetric-key encryption, also known as block cipher based encryption.
+The ciphers used for symmetric-key encryption use the same key for both the encryption and decryption stages.
+This key is also called a shared secret.
+The reason the ciphers are called block ciphers is because the data to be encrypted is encrypted in chunks or blocks.
+If you just want to encrypt some files or data and don't want to set up a key pair (required for asymmetric encryption and digital signatures), then symmetric-key based cryptography is your answer.
+Below, we'll cover several of the available ciphers including: AES256, TWOFISH, and CAMELLIA256.
+To see a list of available ciphers, run 

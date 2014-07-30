@@ -1,0 +1,116 @@
+#!/usr/bin/env python
+import os
+import sys
+import imp
+lib_path = os.path.abspath('home/local/ANT/sorgente/Projects/AlmachBuildLibraryServer/lib/')
+sys.path.append(lib_path)
+os.chdir('/home/local/ANT/sorgente/Projects/AlmachBuildLibraryServer/lib/')
+api = imp.load_source('AlmachBuildLibraryServer', '/home/local/ANT/sorgente/Projects/AlmachBuildLibraryServer/lib/AlmachBuildLibraryServer/api.py') 
+
+from AlmachBuildLibraryServer import api
+import AlmachBuildLibraryServer as LB
+import unittest
+import tempfile
+from subprocess import call
+
+test_client = api.get_test_client()
+
+class html(unittest.TestCase):
+    def test_root(self):
+    	html = test_client.get('/')
+    	self.failIf(html is None or html is "" or html.status_code != 200) 
+
+    def test_help(self):
+        html = test_client.get('/help')
+    	self.failIf(html is None or html is "" or html.status_code != 200)
+
+class json(unittest.TestCase):
+    def test_json(self):
+        json_res = test_client.get('/json?input=user:testing+and+name:baseimage')
+        json_data = api.json.loads(json_res.data)
+        self.assertEqual(len(json_data), 1)
+        self.assertEqual(json_res.status_code, 200)
+        self.assertEqual(json_data[0]["name"], "baseimage")
+        self.assertEqual(json_data[0]["parent"], "824397b97a97bffaf2e0b2af1a848fcf9a4d5c0271b7384571a39af4149f394a")
+        self.assertEqual(json_data[0]["sha"], "07af6fd443d3cd290cd6b6c7869b38630121bbc6934eef322adb40a1fdf75630")
+        self.assertEqual(json_data[0]["user"], "testing")
+        self.assertEqual(json_data[0]["size"], "0 MB")
+
+    def test_search(self):
+        json_res = test_client.get('/json?input=user:testing')
+        json_data = api.json.loads(json_res.data)
+        self.assertEqual(len(json_data), 6)
+        self.assertEqual(json_res.status_code, 200)
+
+    def test_search2(self):   
+        json_res = test_client.get('/json?input=user:testing+and+name:ubuntu+or+user:testing+and+arch:ppc+or+user:testing+and+name:ppc')
+        json_data = api.json.loads(json_res.data)
+        self.assertEqual(len(json_data), 3)
+        self.assertEqual(json_res.status_code, 200)
+
+    def test_search3(self):
+        json_res = test_client.get('/json?input=tag22')
+        json_data = api.json.loads(json_res.data)
+        self.assertEqual(len(json_data), 1)
+        self.assertEqual(json_res.status_code, 200)
+
+    def test_rename(self):
+        json_res = test_client.get('/json?input=user:testing+and+name:baseimage')
+        json_data = api.json.loads(json_res.data)
+        self.assertEqual(len(json_data), 1)
+        self.assertEqual(json_res.status_code, 200)
+        self.assertEqual(json_data[0]["version"], "latest")
+        test_client.post("/rename", data=dict(
+            id=json_data[0]["id"],
+            name="testing/baseimage:2.0"
+        ))
+        json_res = test_client.get('/json?input=user:testing+and+name:baseimage')
+        json_data = api.json.loads(json_res.data)
+        self.assertEqual(len(json_data), 1)
+        self.assertEqual(json_res.status_code, 200)
+        self.assertEqual(json_data[0]["version"], "2.0")
+        test_client.post("/rename", data=dict(
+            id=json_data[0]["id"],
+            name="testing/baseimage:latest"
+        ))
+        json_res = test_client.get('/json?input=user:testing+and+name:baseimage')
+        json_data = api.json.loads(json_res.data)
+        self.assertEqual(len(json_data), 1)
+        self.assertEqual(json_res.status_code, 200)
+        self.assertEqual(json_data[0]["version"], "latest")
+
+    def test_edit(self):
+        json_res = test_client.get('/json?input=user:testing+and+name:baseimage')
+        json_data = api.json.loads(json_res.data)
+        self.assertEqual(len(json_data), 1)
+        self.assertEqual(json_res.status_code, 200)
+        self.assertEqual(json_data[0]["arch"], "x86")
+        self.assertEqual(json_data[0]["keywords"], "")
+        test_client.post("/edit", data=dict(
+            id=json_data[0]["id"],
+            arch="ppc",
+            keywords="one@two@a third"
+        ))
+        json_res = test_client.get('/json?input=user:testing+and+name:baseimage')
+        json_data = api.json.loads(json_res.data)
+        self.assertEqual(len(json_data), 1)
+        self.assertEqual(json_res.status_code, 200)
+        self.assertEqual(json_data[0]["arch"], "ppc")
+        self.assertEqual(json_data[0]["keywords"], "one@two@a third")
+        test_client.post("/edit", data=dict(
+            id=json_data[0]["id"],
+            arch="x86",
+            keywords=""
+        ))
+        json_res = test_client.get('/json?input=user:testing+and+name:baseimage')
+        json_data = api.json.loads(json_res.data)
+        self.assertEqual(len(json_data), 1)
+        self.assertEqual(json_res.status_code, 200)
+        self.assertEqual(json_data[0]["arch"], "x86")
+        self.assertEqual(json_data[0]["keywords"], "")
+
+def main():
+	unittest.main()
+
+if __name__ == '__main__':
+    main()
