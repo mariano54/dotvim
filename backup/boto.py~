@@ -241,7 +241,7 @@ class Base(driver.Base):
         try:
             os.remove(filename)
         except OSError:
-        pass
+            pass
 
     def list_directory(self, path=None):
         path = self._init_path(path)

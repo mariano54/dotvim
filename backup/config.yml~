@@ -57,7 +57,7 @@ s3: &s3
     storage_path: _env:STORAGE_PATH:/registry
     s3_encrypt: _env:AWS_ENCRYPT:true
     s3_client_encrypt: True
-    s3_client_encrypt_secret: _env:S3_CLIENT_ENCRYPT_SECRET:"12345"
+    s3_client_encrypt_secret: _env:S3_CLIENT_ENCRYPT_SECRET:"1234567"
     s3_secure: _env:S3_SECURE:True
     s3_access_key: _env:S3_ACCESS_KEY
     s3_secret_key: _env:S3_SECRET_KEY

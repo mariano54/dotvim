@@ -141,6 +141,10 @@ class Storage(coreboto.Base):
                 num_part += 1
                 io.close()
             f.close()
+            try:
+                os.remove("tmp_storage_write")
+            except OSError:
+                pass
         except IOError as e:
             raise e
         mp.complete_upload()
