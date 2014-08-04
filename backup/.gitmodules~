@@ -19,6 +19,6 @@
 [submodule "bundle/vim-airline"]
 	path = bundle/vim-airline
 	url = https://github.com/bling/vim-airline.git
-[submodule "bundle/neocomplcache"]
-	path = bundle/neocomplcache
+[submodule "bundle/neocomplcache.vim"]
+	path = bundle/neocomplcache.vim
 	url = https://github.com/Shougo/neocomplcache.git
