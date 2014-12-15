@@ -10,6 +10,7 @@ let g:rehash256 = 1
 "let g:molokai_original = 1
 "set background=light
 set linespace=1
+
 """"""""""""""""""""""""""""""
 " => Visual mode related
 """"""""""""""""""""""""""""""
@@ -17,6 +18,29 @@ set linespace=1
 " Super useful! From an idea by Michael Naumann
 vnoremap <silent> * :call VisualSelection('f')<CR>
 vnoremap <silent> # :call VisualSelection('b')<CR>
+
+" Nerdtree
+cd ~/Projects
+map <F2> :NERDTreeToggle<CR>
+map <Leader>nt :NERDTree %:p:h<CR>
+
+" Omni complete
+set completeopt-=preview
+
+" Latex
+set grepprg=grep\ -nH\ $*
+let g:tex_flavor = "latex"
+let g:Tex_DefaultTargetFormat = "pdf"
+
+
+" Syntastic
+let g:syntastic_tex_checkers = []
+let g:syntastic_python_python_exec = 'python2'
+let g:syntastic_python_checkers=['python']
+
+" Building (Python)
+autocmd FileType python nnoremap <buffer> <F9> :exec '!python3' shellescape(@%, 1)<cr>
+autocmd FileType python nnoremap <buffer> <F8> :exec '!python2' shellescape(@%, 1)<cr>
 
 " Treat long lines as break lines (useful when moving around in them)
 map j gj
@@ -46,6 +70,7 @@ set viminfo^=%
 " Toggle paste mode on and off
 map <leader>pp :setlocal paste!<cr>
 vnoremap <C-c> "+y
+vnoremap <C-x> "+p
 
 
 set backup
@@ -147,26 +172,6 @@ noremap <Leader>m :NERDTreeToggle<cr>
 " => Helper functions
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-"{{{Theme Rotating
-let themeindex=0
-function! RotateColorTheme()
-   let y = -1
-   while y == -1
-      let colorstring = "inkpot#ron#blue#elflord#evening#koehler#murphy#pablo#desert#torte#"
-      let x = match( colorstring, "#", g:themeindex )
-      let y = match( colorstring, "#", x + 1 )
-      let g:themeindex = x + 1
-      if y == -1
-         let g:themeindex = 0
-      else
-         let themestring = strpart(colorstring, x + 1, y - x - 1)
-         return ":colorscheme ".themestring
-      endif
-   endwhile
-endfunction
-" }}}
-
-
 function! CmdLine(str)
     exe "menu Foo.Bar :" . a:str
     emenu Foo.Bar
@@ -223,10 +228,6 @@ function! <SID>BufcloseCloseIt()
      execute("bdelete! ".l:currentBufNum)
    endif
 endfunction
-
-" Rotate Color Scheme <F8>
-nnoremap <silent> <F8> :execute RotateColorTheme()<CR>
-
 
 syntax on
 filetype plugin indent on
