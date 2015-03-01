@@ -1,6 +1,0 @@
-pip uninstall docker-registry
-pip uninstall docker-registry-core
-cd depends/docker-registry-core
-pip install .
-cd ../..
-pip install .

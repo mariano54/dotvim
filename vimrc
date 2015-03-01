@@ -23,6 +23,10 @@ vnoremap <silent> # :call VisualSelection('b')<CR>
 cd ~/Projects
 map <F2> :NERDTreeToggle<CR>
 map <Leader>nt :NERDTree %:p:h<CR>
+let g:NERDTreeWinSize=24
+
+" DelimitMate
+inoremap {<CR> {<CR>}<C-o>O
 
 " Omni complete
 set completeopt-=preview
