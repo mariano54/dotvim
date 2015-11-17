@@ -7,3 +7,5 @@ set guioptions-=T  "remove toolbar
 set guioptions-=r  "remove right-hand scroll bar
 :set linespace=2
 :set guioptions-=L
+
+set lines=999 columns=150
